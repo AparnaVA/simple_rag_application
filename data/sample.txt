@@ -1,0 +1,9 @@
+Python is a popular programming language.
+
+Django is a Python web framework used for building web applications.
+
+React is a JavaScript library used to build user interfaces.
+
+ChromaDB is a vector database used to store and search embeddings.
+
+Html is a markup language.

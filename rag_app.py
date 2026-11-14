@@ -5,43 +5,42 @@ from google import genai
 
 
 # ----------------------------------
-# 1. Load the API key
+# 1. Load the Gemini API key
 # ----------------------------------
 
 load_dotenv()
 
 api_key = os.getenv("GEMINI API KEY")
 
-
-# ----------------------------------
-# 2. Connect to Gemini
-# ----------------------------------
-
-gemini_client = genai.Client(api_key=api_key)
+gemini_client = genai.Client(
+    api_key=api_key
+)
 
 
 # ----------------------------------
-# 3. Connect to ChromaDB
+# 2. Connect to ChromaDB
 # ----------------------------------
 
 chroma_client = chromadb.PersistentClient(
     path="./chroma_data"
 )
 
+
+# Get the collection containing uploaded files
 collection = chroma_client.get_collection(
     name="documents"
 )
 
 
 # ----------------------------------
-# 4. Get a question from the user
+# 3. Get a question from the user
 # ----------------------------------
 
 question = input("Ask a question: ")
 
 
 # ----------------------------------
-# 5. Retrieve relevant documents
+# 4. Search the uploaded document
 # ----------------------------------
 
 results = collection.query(
@@ -49,17 +48,22 @@ results = collection.query(
     n_results=2
 )
 
+
+# Get the relevant chunks
 relevant_documents = results["documents"][0]
 
 
-# Combine the retrieved documents
+# Combine the chunks into one context
 context = "\n".join(relevant_documents)
 
+
+# Optional: Show what ChromaDB found
+print("\nRelevant information:")
 print(context)
 
 
 # ----------------------------------
-# 6. Create a prompt
+# 5. Create a prompt for Gemini
 # ----------------------------------
 
 prompt = f"""
@@ -71,24 +75,26 @@ Information:
 Question:
 {question}
 
-If the information does not contain the answer, say:
-"I could not find the answer in the provided documents."
+If the answer is not available in the information, say:
+"I could not find the answer in the uploaded document."
 """
 
 
 # ----------------------------------
-# 7. Ask Gemini to generate an answer
+# 6. Ask Gemini to generate an answer
 # ----------------------------------
 
-response = gemini_client.models.generate_content(
-    model="gemini-3.5-flash-lite",
-    contents=prompt
-)
+try:
+    print("\nGenerating answer...")
 
+    response = gemini_client.models.generate_content(
+        model="gemini-3.5-flash-lite",
+        contents=prompt
+    )
 
-# ----------------------------------
-# 8. Display the answer
-# ----------------------------------
+    print("\nAnswer:")
+    print(response.text)
 
-print("\nAnswer:")
-print(response.text)
+except Exception as error:
+    print("\nGemini is currently unavailable.")
+    print("Error:", error)
