@@ -1,0 +1,6 @@
+# Python
+venv/
+.env
+list_models.py
+test_gemini.py
+chroma_data/
