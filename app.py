@@ -4,6 +4,8 @@ import chromadb
 import os
 from dotenv import load_dotenv
 from google import genai
+from pypdf import PdfReader
+from io import BytesIO
 
 
 # ----------------------------------
@@ -24,6 +26,7 @@ st.set_page_config(
 client = chromadb.PersistentClient(
     path="./chroma_data"
 )
+
 
 collection = client.get_or_create_collection(
     name="documents"
@@ -57,8 +60,8 @@ st.write(
 st.subheader("1. Upload your document")
 
 uploaded_file = st.file_uploader(
-    "Choose a text file",
-    type=["txt"]
+    "Choose a document",
+    type=["txt", "pdf"]
 )
 
 
@@ -68,7 +71,23 @@ uploaded_file = st.file_uploader(
 
 if uploaded_file is not None:
 
-    text = uploaded_file.read().decode("utf-8")
+    # Read TXT or PDF file
+
+    if uploaded_file.name.endswith(".txt"):
+
+        text = uploaded_file.read().decode("utf-8")
+
+    elif uploaded_file.name.endswith(".pdf"):
+
+        pdf_reader = PdfReader(BytesIO(uploaded_file.read()))
+
+        text = ""
+
+        for page in pdf_reader.pages:
+            page_text = page.extract_text()
+
+            if page_text:
+                text += page_text + "\n"
 
     st.success("File uploaded successfully!")
 
